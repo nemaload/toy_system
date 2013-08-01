@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define NUMBER_EXCITATORY_NEURONS 800
 #define NUMBER_INHIBITORY_NEURONS 200
@@ -18,6 +19,8 @@ void fillArrayWithRandomNumbers(double inputArray, int arrayLength) {
 //fill the excitatory neurons with random numbers between 0 and 1
 fillArrayWithRandomNumbers(&randomExcitatoryNeurons, NUMBER_EXCITATORY_NEURONS);
 fillArrayWithRandomNumbers(&randomInhibitoryNeurons, NUMBER_INHIBITORY_NEURONS);
+
+//use powf(a,b) to do float exponentiation
 
 //construct "a" matrix
 
