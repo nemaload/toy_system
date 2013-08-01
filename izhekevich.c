@@ -4,6 +4,8 @@
 #define NUMBER_EXCITATORY_NEURONS 800
 #define NUMBER_INHIBITORY_NEURONS 200
 
+//test comment
+
 srand(time(NULL)); //seed the random number generator
 
 
