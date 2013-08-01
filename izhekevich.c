@@ -9,11 +9,7 @@
 srand(time(NULL)); //seed the random number generator
 
 double randomExcitatoryNeurons[NUMBER_EXCITATORY_NEURONS];
-double (*randomExcitatoryNeurons)[NUMBER_EXCITATORY_NEURONS];
-double (*randomInhibitoryNeurons)[NUMBER_INHIBITORY_NEURONS];
 
-double (*amatrix)[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
-double (*bmatrix)[]
 
 void fillArrayWithRandomNumbers(double inputArray, int arrayLength) {
 	for (int i=0; i < arrayLength; ++i) inputArray[i] = (double)rand() / (double)RAND_MAX;
