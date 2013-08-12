@@ -36,9 +36,25 @@ void fillArrayWithNumber(double *inputArray, double number, int numElements) {
 	}
 }
 
+double generateNormallyDistributedRandomDouble( unsigned long int *seed,
+	int ziggurat_kn[128], float ziggurat_fn[128], float ziggurat_wn[128]) {
+	return (double) r4_nor(seed, ziggurat_kn, ziggurat_fn, ziggurat_wn);
+}
+
+
 int main(int argc, char **argv)
 {
 	srand(time(NULL)); //seed the random number generator
+	//set up the ziggurat normally distributed pseudorandom number generator
+	int ziggurat_kn[128];
+	float ziggurat_fn[128];
+	float ziggurat_wn[128];
+	r4_nor_setup(ziggurat_kn,ziggurat_fn,ziggurat_wn);
+
+
+
+
+
 	//declare two arrays to hold random values
 	//corresponds to "Ne=800;     Ni=200;"
 	double randomExcitatory[NUMBER_EXCITATORY_NEURONS];
@@ -172,10 +188,8 @@ int main(int argc, char **argv)
 	//double firings[]; 
 	int currentTime;
 
-	for (currentTime = 0; 
-		currentTime < SIMULATION_TIME_MS; 
-		++currentTime) {
-		currentRowIndex++;
+	for (currentTime = 0; currentTime < SIMULATION_TIME_MS; ++currentTime) {
+		
 
 	}
 
