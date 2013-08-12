@@ -23,17 +23,98 @@ void fillArrayWithRandomNumbers(double *inputArray, int arrayLength) {
 	} 
 }
 
+//MODIFIES: inputArray
+//EFFECTS: Fills numElements elements of inputArray with number
+void fillArrayWithNumber(double *inputArray, double number, int numElements) {
+	int currentArrayElementIndex;
+	for (currentArrayElementIndex=0;
+		currentArrayElementIndex < numElements;
+		++currentArrayElementIndex) {
+		inputArray[currentArrayElementIndex] = number;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	srand(time(NULL)); //seed the random number generator
-	//declare two arrays to hold the neurons
-	double randomExcitatoryNeurons[NUMBER_EXCITATORY_NEURONS];
-	double randomInhibitoryNeurons[NUMBER_INHIBITORY_NEURONS];
-	//fill the excitatory neurons with random numbers between 0 and 1
-	fillArrayWithRandomNumbers(randomExcitatoryNeurons, NUMBER_EXCITATORY_NEURONS);
-	fillArrayWithRandomNumbers(randomInhibitoryNeurons, NUMBER_INHIBITORY_NEURONS);
-
+	//declare two arrays to hold random values
+	double randomExcitatory[NUMBER_EXCITATORY_NEURONS];
+	double randomInhibitory[NUMBER_INHIBITORY_NEURONS];
+	//fill the excitatory array with random numbers between 0 and 1
+	fillArrayWithRandomNumbers(randomExcitatory, 
+							   NUMBER_EXCITATORY_NEURONS);
+	fillArrayWithRandomNumbers(randomInhibitory, 
+							   NUMBER_INHIBITORY_NEURONS);
+	//declare an array to hold the "a" in the Izhekevich model
+	double a[NUMBER_EXCITATORY_NEURONS+NUMBER_INHIBITORY_NEURONS];
 	
+	int currentArrayElementIndex; //declare the iterator
+
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentArrayElementIndex) {
+		//fill the first NUMBER_EXCITATORY_NEURONS with 0.02
+		a[currentArrayElementIndex] = 0.02;
+	}
+
+	for (currentArrayElementIndex = NUMBER_EXCITATORY_NEURONS;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS+ NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		//fill the rest of the array with the formula below
+		a[currentArrayElementIndex] = 
+			0.02 + 0.08 * randomInhibitory[currentArrayElementIndex];
+	}
+
+	//declare the "b" array
+	double b[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+	//same deal as above
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentArrayElementIndex) {
+		b[currentArrayElementIndex] = 0.02;
+	}
+	for (currentArrayElementIndex = NUMBER_EXCITATORY_NEURONS;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		b[currentArrayElementIndex] = 
+			0.25 - 0.05* randomInhibitory[currentArrayElementIndex];
+	}
+
+	//declare the "c" array
+	//same thing
+	double c[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentArrayElementIndex) {
+		c[currentArrayElementIndex] = 
+			-65 + 15 * powf(randomExcitatory[currentArrayElementIndex],2);
+	}
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		c[currentArrayElementIndex] = -65;
+	}
+
+	double d[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentArrayElementIndex) {
+		d[currentArrayElementIndex] = 
+			8 - 6 * powf(randomExcitatory[currentArrayElementIndex],2);
+	}
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		c[currentArrayElementIndex] = 2;
+	}
+
+
+
+
 	//use powf(a,b) to do float exponentiation
 
 	//construct "a" matrix
