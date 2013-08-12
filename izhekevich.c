@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include "lib/ziggurat/ziggurat.h"
 
 #define NUMBER_EXCITATORY_NEURONS 800
 #define NUMBER_INHIBITORY_NEURONS 200
+#define SIMULATION_TIME_MS 1000
 
 //convenience functions
 
@@ -156,6 +158,27 @@ int main(int argc, char **argv)
 		++currentArrayElementIndex) {
 		v[currentArrayElementIndex] = -65;
 	}
+	//fill u
+	//corresponds to "u=b.*v;    % Initial values of u"
+	double u[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex <
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		u[currentArrayElementIndex] = 
+			b[currentArrayElementIndex] * v[currentArrayElementIndex];
+	}
+
+	//double firings[]; 
+	int currentTime;
+
+	for (currentTime = 0; 
+		currentTime < SIMULATION_TIME_MS; 
+		++currentTime) {
+		currentRowIndex++;
+
+	}
+
 
 
 
