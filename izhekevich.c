@@ -11,6 +11,8 @@
 #define RANDN generateNormallyDistributedRandomDouble
 
 
+
+
 //struct definitions
 //holds the parameters for the normally distributed PRNG
 typedef struct zigguratParameters {
@@ -19,6 +21,13 @@ typedef struct zigguratParameters {
 	float ziggurat_wn[128];
 	unsigned long int seed;
 } zigguratParameters;
+
+typedef struct firingNode
+{
+	struct firingNode *next;
+	double firing;
+} firingNode;
+
 
 //convenience functions
 
@@ -87,8 +96,35 @@ void generateThalamicInput(
 		I[currentArrayElementIndex] = 2*RANDN(params);
 	}
 }
-
-//double *generateFiredArray
+//EFFECTS: Returns a pointer to an array of all elements of v
+// 		   which are greater than or equal to 30
+double *generatedFiredArray(double *v) {
+	//assuming v has constant size, might vary
+	int currentArrayElementIndex;
+	int numberElementsGeq30 = 0;
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex <
+			(NUMBER_INHIBITORY_NEURONS + NUMBER_EXCITATORY_NEURONS);
+		++currentArrayElementIndex) {
+		if (v[currentArrayElementIndex] >= 30) {
+			++numberElementsGeq30;
+		}
+	}
+	int secondArrayIterator = 0;
+	double * elementArray = 
+		(double * )calloc(numberElementsGeq30,numberElementsGeq30);
+	//now that array is allocated, fill it with said elements
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex <
+			(NUMBER_INHIBITORY_NEURONS + NUMBER_EXCITATORY_NEURONS);
+		++currentArrayElementIndex) {
+		if (v[currentArrayElementIndex] >= 30) {
+			elementArray[secondArrayIterator] = 
+				v[currentArrayElementIndex];
+		}
+	}
+	return elementArray;
+}
 
 
 

@@ -1,5 +1,5 @@
 all: ziggurat izhekevich 
-	gcc -o izhekevich izhekevich.o ziggurat.o -lhdf5 -lm
+	gcc -O3 -o izhekevich izhekevich.o ziggurat.o -lhdf5 -lm 
 
 
 ziggurat: ./lib/ziggurat/ziggurat.c
