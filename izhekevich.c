@@ -5,27 +5,40 @@
 #define NUMBER_EXCITATORY_NEURONS 800
 #define NUMBER_INHIBITORY_NEURONS 200
 
-//test comment
+//convenience functions
 
-srand(time(NULL)); //seed the random number generator
-
-double randomExcitatoryNeurons[NUMBER_EXCITATORY_NEURONS];
-
-
-void fillArrayWithRandomNumbers(double inputArray, int arrayLength) {
-	for (int i=0; i < arrayLength; ++i) inputArray[i] = (double)rand() / (double)RAND_MAX;
+//EFFECTS: Returns a random number between 0 and 1 
+double generateRandomDouble() {
+	return (double)rand() / (double)RAND_MAX;
 }
 
-//fill the excitatory neurons with random numbers between 0 and 1
-fillArrayWithRandomNumbers(&randomExcitatoryNeurons, NUMBER_EXCITATORY_NEURONS);
-fillArrayWithRandomNumbers(&randomInhibitoryNeurons, NUMBER_INHIBITORY_NEURONS);
+//MODIFIES: inputArray
+//EFFECTS: Fills inputArray completely with random numbers between 0 and 1.
+void fillArrayWithRandomNumbers(double *inputArray, int arrayLength) {
+	int currentArrayElementIndex;
+	for (currentArrayElementIndex=0; 
+		currentArrayElementIndex < arrayLength; 
+		++currentArrayElementIndex) {
+		inputArray[currentArrayElementIndex] = generateRandomDouble();		
+	} 
+}
 
-//use powf(a,b) to do float exponentiation
+int main(int argc, char **argv)
+{
+	srand(time(NULL)); //seed the random number generator
+	
+	//fill the excitatory neurons with random numbers between 0 and 1
+	double randomExcitatoryNeurons[NUMBER_EXCITATORY_NEURONS];
+	double randomInhibitoryNeurons[NUMBER_INHIBITORY_NEURONS];
+	fillArrayWithRandomNumbers(randomExcitatoryNeurons, NUMBER_EXCITATORY_NEURONS);
+	fillArrayWithRandomNumbers(randomInhibitoryNeurons, NUMBER_INHIBITORY_NEURONS);
 
-//construct "a" matrix
+	//use powf(a,b) to do float exponentiation
 
-//take out fired
-//v and u values are relevant
+	//construct "a" matrix
 
+	//take out fired
+	//v and u values are relevant
 
-int r = rand
+}
+
