@@ -80,9 +80,15 @@ void generateThalamicInput(
 		++currentArrayElementIndex) {
 		I[currentArrayElementIndex] = 5 * RANDN(params);
 	}
-	
+	for (currentArrayElementIndex = NUMBER_EXCITATORY_NEURONS;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS+ NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		I[currentArrayElementIndex] = 2*RANDN(params);
+	}
 }
 
+//double *generateFiredArray
 
 
 
@@ -232,8 +238,6 @@ int main(int argc, char **argv)
 	int currentTime;
 	double I[NUMBER_INHIBITORY_NEURONS+ NUMBER_EXCITATORY_NEURONS];
 	for (currentTime = 0; currentTime < SIMULATION_TIME_MS; ++currentTime) {
-
-		
 
 	}
 
