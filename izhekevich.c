@@ -38,9 +38,11 @@ int main(int argc, char **argv)
 {
 	srand(time(NULL)); //seed the random number generator
 	//declare two arrays to hold random values
+	//corresponds to "Ne=800;     Ni=200;"
 	double randomExcitatory[NUMBER_EXCITATORY_NEURONS];
 	double randomInhibitory[NUMBER_INHIBITORY_NEURONS];
 	//fill the excitatory array with random numbers between 0 and 1
+	//corresponds to "re=rand(Ne,1); ri=rand(Ni,1);"
 	fillArrayWithRandomNumbers(randomExcitatory, 
 							   NUMBER_EXCITATORY_NEURONS);
 	fillArrayWithRandomNumbers(randomInhibitory, 
@@ -49,14 +51,13 @@ int main(int argc, char **argv)
 	double a[NUMBER_EXCITATORY_NEURONS+NUMBER_INHIBITORY_NEURONS];
 	
 	int currentArrayElementIndex; //declare the iterator
-
+	//corresponds to "a=[0.02*ones(Ne,1);     0.02+0.08*ri];"
 	for (currentArrayElementIndex = 0;
 		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
 		++currentArrayElementIndex) {
 		//fill the first NUMBER_EXCITATORY_NEURONS with 0.02
 		a[currentArrayElementIndex] = 0.02;
 	}
-
 	for (currentArrayElementIndex = NUMBER_EXCITATORY_NEURONS;
 		currentArrayElementIndex < 
 			(NUMBER_EXCITATORY_NEURONS+ NUMBER_INHIBITORY_NEURONS);
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 
 	//declare the "b" array
 	double b[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
-	//same deal as above
+	//corresponds to "b=[0.2*ones(Ne,1);      0.25-0.05*ri];"
 	for (currentArrayElementIndex = 0;
 		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
 		++currentArrayElementIndex) {
@@ -83,7 +84,7 @@ int main(int argc, char **argv)
 	}
 
 	//declare the "c" array
-	//same thing
+	//corresponds to "c=[-65+15*re.^2;        -65*ones(Ni,1)];"
 	double c[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
 	for (currentArrayElementIndex = 0;
 		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
 		++currentArrayElementIndex) {
 		c[currentArrayElementIndex] = -65;
 	}
-
+	//corresponds to "d=[8-6*re.^2;           2*ones(Ni,1)];"
 	double d[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
 	for (currentArrayElementIndex = 0;
 		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
@@ -111,6 +112,54 @@ int main(int argc, char **argv)
 		++currentArrayElementIndex) {
 		c[currentArrayElementIndex] = 2;
 	}
+
+	//S is a square 2D array
+	//corresponds to S=[0.5*rand(Ne+Ni,Ne),  -rand(Ne+Ni,Ni)];
+	double S[NUMBER_INHIBITORY_NEURONS + NUMBER_EXCITATORY_NEURONS]
+	[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+
+	int currentRowIndex;
+	int currentColumnIndex;
+	//fill the first NUMBER_EXCITATORY_NEURONS rows with 0.5*random numbers
+	for (currentRowIndex = 0;
+		currentRowIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentRowIndex) {
+		for (currentColumnIndex = 0;
+			currentColumnIndex < 
+				(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+			++currentColumnIndex) {
+			S[currentRowIndex][currentColumnIndex] = 
+				0.5 * generateRandomDouble();
+		}
+	}
+
+	//fill the next NUMBER_INHIBITORY_NEURONS rows with -random numbers
+	for (currentRowIndex = NUMBER_EXCITATORY_NEURONS;
+		currentRowIndex < 
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentRowIndex) {
+		for (currentColumnIndex = 0;
+			currentColumnIndex < 
+				(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+			++currentColumnIndex) {
+			S[currentRowIndex][currentColumnIndex] = 
+				-1.0 * generateRandomDouble();
+		}
+	}
+
+	//generate initial values of v
+	//corresponds to "v=-65*ones(Ne+Ni,1);    % Initial values of v"
+	double v[NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS];
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < 
+			(NUMBER_EXCITATORY_NEURONS + NUMBER_INHIBITORY_NEURONS);
+		++currentArrayElementIndex) {
+		v[currentArrayElementIndex] = -65;
+	}
+
+
+
+
 
 
 
