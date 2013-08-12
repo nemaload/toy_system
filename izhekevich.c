@@ -2,10 +2,23 @@
 #include <time.h>
 #include <math.h>
 #include "lib/ziggurat/ziggurat.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 #define NUMBER_EXCITATORY_NEURONS 800
 #define NUMBER_INHIBITORY_NEURONS 200
 #define SIMULATION_TIME_MS 1000
+#define RANDN generateNormallyDistributedRandomDouble
+
+
+//struct definitions
+//holds the parameters for the normally distributed PRNG
+typedef struct zigguratParameters {
+	int ziggurat_kn[128];
+	float ziggurat_fn[128];
+	float ziggurat_wn[128];
+	unsigned long int seed;
+} zigguratParameters;
 
 //convenience functions
 
@@ -15,7 +28,7 @@ double generateRandomDouble() {
 }
 
 //MODIFIES: inputArray
-//EFFECTS: Fills inputArray completely with random numbers between 0 and 1.
+//EFFECTS:  Fills inputArray completely with random numbers between 0 and 1.
 void fillArrayWithRandomNumbers(double *inputArray, int arrayLength) {
 	int currentArrayElementIndex;
 	for (currentArrayElementIndex=0; 
@@ -26,7 +39,7 @@ void fillArrayWithRandomNumbers(double *inputArray, int arrayLength) {
 }
 
 //MODIFIES: inputArray
-//EFFECTS: Fills numElements elements of inputArray with number
+//EFFECTS:  Fills numElements elements of inputArray with number
 void fillArrayWithNumber(double *inputArray, double number, int numElements) {
 	int currentArrayElementIndex;
 	for (currentArrayElementIndex=0;
@@ -36,20 +49,50 @@ void fillArrayWithNumber(double *inputArray, double number, int numElements) {
 	}
 }
 
-double generateNormallyDistributedRandomDouble( unsigned long int *seed,
-	int ziggurat_kn[128], float ziggurat_fn[128], float ziggurat_wn[128]) {
-	return (double) r4_nor(seed, ziggurat_kn, ziggurat_fn, ziggurat_wn);
+//MODIFIES: zigguratParameters
+//EFFECTS: Sets up the PRNG, and generates a seed value from /dev/random
+void setupRandomNumberGenerator(zigguratParameters *params) {
+	r4_nor_setup(params->ziggurat_kn, params->ziggurat_fn, params->ziggurat_wn);
+	int randomSrc = open("/dev/random", O_RDONLY);
+	read(randomSrc, params->seed, sizeof(unsigned long));
+	close(randomSrc);
 }
+
+//REQUIRES: r4_nor_setup has already been called
+//EFFECTS:  Returns a normally distributed random number with mean 0 and 
+//		    variance 1.
+//NOTES:    Uses the fast Ziggurat method for pseudorandom number generation.
+//		    Implemented by John Burkardt, distributed under LGPL.
+double generateNormallyDistributedRandomDouble( zigguratParameters * p) {
+	return (double) r4_nor(&(p->seed), p->ziggurat_kn, p->ziggurat_fn, 
+		p->ziggurat_wn);
+
+}
+
+//MODIFIES: The thalamic input array, I
+//EFFECTS: Fills I with various normally distributed pseudorandom numbers
+void generateThalamicInput(
+	double I[NUMBER_EXCITATORY_NEURONS+ NUMBER_INHIBITORY_NEURONS],
+	struct zigguratParameters *params) {
+	int currentArrayElementIndex;
+	for (currentArrayElementIndex = 0;
+		currentArrayElementIndex < NUMBER_EXCITATORY_NEURONS;
+		++currentArrayElementIndex) {
+		I[currentArrayElementIndex] = 5 * RANDN(params);
+	}
+	
+}
+
+
 
 
 int main(int argc, char **argv)
 {
 	srand(time(NULL)); //seed the random number generator
 	//set up the ziggurat normally distributed pseudorandom number generator
-	int ziggurat_kn[128];
-	float ziggurat_fn[128];
-	float ziggurat_wn[128];
-	r4_nor_setup(ziggurat_kn,ziggurat_fn,ziggurat_wn);
+	zigguratParameters randomParameters;
+	setupRandomNumberGenerator(&randomParameters);
+	
 
 
 
@@ -187,8 +230,9 @@ int main(int argc, char **argv)
 
 	//double firings[]; 
 	int currentTime;
-
+	double I[NUMBER_INHIBITORY_NEURONS+ NUMBER_EXCITATORY_NEURONS];
 	for (currentTime = 0; currentTime < SIMULATION_TIME_MS; ++currentTime) {
+
 		
 
 	}
