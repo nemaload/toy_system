@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 	//"github.com/sbinet/go-hdf5/pkg/hdf5"
 )
@@ -10,9 +10,8 @@ import (
 func potassiumAlphaN(voltage float64) float64 {
 	if voltage != 10 {
 		return 0.01 * (-voltage + 10) / (math.Exp((-voltage+10)/10) - 1)
-	} else {
-		return 0.1
 	}
+	return 0.1
 }
 
 //calculate the other potassium rate constant
@@ -30,9 +29,8 @@ func potassiumNInfinity(voltage float64) float64 {
 func sodiumAlphaM(voltage float64) float64 {
 	if voltage != 25 {
 		return 0.1 * (-voltage + 25) / (math.Exp((-voltage+25)/10) - 1)
-	} else {
-		return 1
 	}
+	return 1
 }
 
 //calculate second sodium rate constant
@@ -85,8 +83,8 @@ func main() {
 	leakConductance := float64(0.3)                //g-_l
 	//These values aren't used until the simulation
 	var sodiumConductance, potassiumConductance float64 //g_Na and g_K
-	sodiumVoltagesSource := float64(115)                //E_Na
-	potassiumVoltageSource := float64(-12)              //E_K
+	sodiumReversePotential := float64(115)              //E_Na
+	potassiumReversePotential := float64(-12)           //E_K
 	leakReversePotential := float64(10.613)             //E_l
 	//declare and calculate activation and inactivation dimensionless quantities
 	m := sodiumMInfinity(restVoltage)
@@ -109,13 +107,31 @@ func main() {
 	//the main simulation loop
 	for timeStep := range timeArray {
 		if timeStep == 0 {
-			//Skip the very first step of simulation to preserve initial state
+			//Skip the very first step of simulation
 			continue
 		}
 
-		//Run the calculations
-		m = m + (sodiumAlphaM(V_m[timeStep-1])*(1-m)-
-			sodiumBetaM(V_m[timeStep-1])*m)*deltaTime
+		sodiumConductance = sodiumActivationMaxConductance * h * math.Pow(m, 3)
+		potassiumConductance = potassiumMaxConductance * math.Pow(n, 4)
+
+		//Update the activation/inactivation dimensionless quantities
+		m += (sodiumAlphaM(V_m[timeStep-1])*(1-m) -
+			sodiumBetaM(V_m[timeStep-1])*m) * deltaTime
+		h += (sodiumAlphaH(V_m[timeStep-1])*(1-h) -
+			sodiumBetaH(V_m[timeStep-1])*h) * deltaTime
+		n += (potassiumAlphaN(V_m[timeStep-1])*(1-n) -
+			potassiumBetaN(V_m[timeStep-1])*n) * deltaTime
+
+		//Calculate the new membrane potential
+		//first, set the voltage to the old voltage
+		V_m[timeStep] = V_m[timeStep-1]
+		//then, update it with the model equation
+		V_m[timeStep] += (stimulusValues[timeStep-1] - sodiumConductance*
+			(V_m[timeStep-1]-sodiumReversePotential) - potassiumConductance*
+			(V_m[timeStep-1]-potassiumReversePotential) - leakConductance*
+			V_m[timeStep-1] - leakReversePotential) / lipidBilayerCapacitance
+		V_m[timeStep] *= deltaTime
+		fmt.Print(V_m[timeStep], ",")
 
 	}
 
