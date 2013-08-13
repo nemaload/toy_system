@@ -67,14 +67,10 @@ func main() {
 	deltaTime := float64(0.025)        //Simulation timestep in milliseconds
 
 	var timeArray []float64 //the array to hold timesteps
-	timeArray = make([]float64, int(totalSimulationTime/deltaTime),
-		int(totalSimulationTime/deltaTime))
 	for timestep := float64(0); timestep <
-		(totalSimulationTime+deltaTime)/deltaTime; timestep++ {
-		//fill the array with a number of timesteps
-		timeArray = append(timeArray, timestep*deltaTime)
+		totalSimulationTime+deltaTime; timestep += deltaTime {
+		timeArray = append(timeArray, timestep)
 	}
-
 	//Hodgkin Huxley model parameters
 	restVoltage := float64(0)                      //V_rest
 	lipidBilayerCapacitance := float64(1)          //C_m
@@ -91,25 +87,19 @@ func main() {
 	n := potassiumNInfinity(restVoltage)
 	h := sodiumHInfinity(restVoltage)
 	//make an array of the calculated voltages
-	V_m := make([]float64,
-		len(timeArray), len(timeArray))
+	V_m := make([]float64, len(timeArray))
 	//set the first timestep equal to the rest voltage
 	V_m[0] = restVoltage
 	//make an an array of stimuli over time 
 	//replace this later with other neurons in the network
-	stimulusValues := make([]float64, len(timeArray), len(timeArray))
+	stimulusValues := make([]float64, len(timeArray))
 	for time, currentTime := range timeArray {
 		//arbitrary stimulation times
-		if currentTime >= 10 && currentTime <= 20 {
-			stimulusValues[time] = float64(20) //some arbitrary stimulus value
+		if currentTime >= 5 && currentTime <= 30 {
+			stimulusValues[time] = float64(10) //some arbitrary stimulus value
 		}
 	}
-	//the main simulation loop
-	for timeStep := range timeArray {
-		if timeStep == 0 {
-			//Skip the very first step of simulation
-			continue
-		}
+	for timeStep := 1; timeStep < len(timeArray); timeStep++ {
 
 		sodiumConductance = sodiumActivationMaxConductance * h * math.Pow(m, 3)
 		potassiumConductance = potassiumMaxConductance * math.Pow(n, 4)
@@ -129,7 +119,7 @@ func main() {
 		V_m[timeStep] += (stimulusValues[timeStep-1] - sodiumConductance*
 			(V_m[timeStep-1]-sodiumReversePotential) - potassiumConductance*
 			(V_m[timeStep-1]-potassiumReversePotential) - leakConductance*
-			V_m[timeStep-1] - leakReversePotential) / lipidBilayerCapacitance
+			(V_m[timeStep-1]-leakReversePotential)) / lipidBilayerCapacitance
 		V_m[timeStep] *= deltaTime
 		fmt.Print(V_m[timeStep], ",")
 
