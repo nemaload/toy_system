@@ -11,7 +11,7 @@
 #define RANDN generateNormallyDistributedRandomDouble
 
 
-
+// ; MEANS NEW COLUMN, ',' is concat two arrays in same row
 
 //struct definitions
 //holds the parameters for the normally distributed PRNG
@@ -96,9 +96,13 @@ void generateThalamicInput(
 		I[currentArrayElementIndex] = 2*RANDN(params);
 	}
 }
-//EFFECTS: Returns a pointer to an array of all elements of v
-// 		   which are greater than or equal to 30
-double *generatedFiredArray(double *v) {
+
+
+//MODIFIES: oldFiredArray will point to a new fired array of size n
+//EFFECTS: Changes the fired array pointed to by oldFiredArray to cointain
+// 		   the elementts of v that are greater than 30, returns 
+//         the size of the newly generated array
+int *generatedFiredArray(double *v, double **oldFiredArray) {
 	//assuming v has constant size, might vary
 	int currentArrayElementIndex;
 	int numberElementsGeq30 = 0;
@@ -111,8 +115,9 @@ double *generatedFiredArray(double *v) {
 		}
 	}
 	int secondArrayIterator = 0;
-	double * elementArray = 
-		(double * )calloc(numberElementsGeq30,numberElementsGeq30);
+	*oldFiredArray = realloc(*oldFiredArray, 
+		sizeof(double) * numberElementsGeq30);
+
 	//now that array is allocated, fill it with said elements
 	for (currentArrayElementIndex = 0;
 		currentArrayElementIndex <
@@ -123,9 +128,15 @@ double *generatedFiredArray(double *v) {
 				v[currentArrayElementIndex];
 		}
 	}
-	return elementArray;
+	return numberElementsGeq30;
 }
-
+//MODIFIES: oldFiringsArray
+//EFFECTS: Creates a nx2 array, where n is the number of rows of firedArray
+//		   plus the number of rows in oldFiringsArray
+double *generateFiringsArray(double **oldFiringsArray, 
+	size_t oldFiringsRows, double*firedArray, size_t firedRows) {
+	
+}
 
 
 int main(int argc, char **argv)
@@ -134,11 +145,6 @@ int main(int argc, char **argv)
 	//set up the ziggurat normally distributed pseudorandom number generator
 	zigguratParameters randomParameters;
 	setupRandomNumberGenerator(&randomParameters);
-	
-
-
-
-
 
 	//declare two arrays to hold random values
 	//corresponds to "Ne=800;     Ni=200;"
@@ -276,21 +282,6 @@ int main(int argc, char **argv)
 	for (currentTime = 0; currentTime < SIMULATION_TIME_MS; ++currentTime) {
 
 	}
-
-
-
-
-
-
-
-
-
-	//use powf(a,b) to do float exponentiation
-
-	//construct "a" matrix
-
-	//take out fired
-	//v and u values are relevant
 
 }
 
