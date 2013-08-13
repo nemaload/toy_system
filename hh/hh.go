@@ -101,8 +101,8 @@ func main() {
 	}
 	for timeStep := 1; timeStep < len(timeArray); timeStep++ {
 
-		sodiumConductance = sodiumActivationMaxConductance * h * math.Pow(m, 3)
-		potassiumConductance = potassiumMaxConductance * math.Pow(n, 4)
+		sodiumConductance = sodiumActivationMaxConductance * h * math.Pow(m, 3.)
+		potassiumConductance = potassiumMaxConductance * math.Pow(n, 4.)
 
 		//Update the activation/inactivation dimensionless quantities
 		m += (sodiumAlphaM(V_m[timeStep-1])*(1-m) -
@@ -115,12 +115,11 @@ func main() {
 		//Calculate the new membrane potential
 		//first, set the voltage to the old voltage
 		V_m[timeStep] = V_m[timeStep-1]
-		//then, update it with the model equation
+		//update it with the model equation
 		V_m[timeStep] += (stimulusValues[timeStep-1] - sodiumConductance*
 			(V_m[timeStep-1]-sodiumReversePotential) - potassiumConductance*
 			(V_m[timeStep-1]-potassiumReversePotential) - leakConductance*
-			(V_m[timeStep-1]-leakReversePotential)) / lipidBilayerCapacitance
-		V_m[timeStep] *= deltaTime
+			(V_m[timeStep-1]-leakReversePotential)) / lipidBilayerCapacitance * deltaTime
 		fmt.Print(V_m[timeStep], ",")
 
 	}
