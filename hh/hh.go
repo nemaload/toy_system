@@ -44,14 +44,36 @@ type Neuron struct {
 	simulation      *Simulation
 }
 
+func (neuron Neuron) initializeNeuron(simulation Simulation) {
+	neuron.intializeVoltageArray(simulation)
+	neuron.setSimulation(simulation)
+	neuron.initializeDimensionlessQuantities()
+
+}
+
+func (neuron Neuron) setSampleStimulationValues() {
+	neuron.stimulation = make([]float64, len(neuron.simulation.timeArray))
+	for time, currentTime := range neuron.simulation.timeArray {
+		if currentTime >= 5 && currentTime <= 30 {
+			neuron.stimulation[time] = float64(10)
+		}
+	}
+}
+
 func (neuron Neuron) setSimulation(simulation Simulation) {
 	neuron.simulation = &simulation
 }
 
-func (neuron Neuron) setInitialVoltage() {
-	neuron.V_m = append(neuron.V_m, neuron.parameters.restVoltage)
+func (neuron Neuron) intializeVoltageArray(simulation Simulation) {
+	neuron.V_m = make([]float64, len(simulation.timeArray))
+	neuron.V_m[0] = neuron.parameters.restVoltage
 }
 
+func (neuron Neuron) initializeDimensionlessQuantities() {
+	neuron.m = neuron.sodiumMInfinity()
+	neuron.n = neuron.potassiumNInfinity()
+	neuron.h = neuron.sodiumHInfinity()
+}
 func (neuron Neuron) calculateDimensionlessQuantities() {
 	neuron.m += (sodiumAlphaM(neuron.V_m[int(neuron.currentTimeStep)-1])*(1-neuron.m) -
 		sodiumBetaM(neuron.V_m[int(neuron.currentTimeStep)-1])*neuron.m) * neuron.simulation.deltaTime
@@ -64,15 +86,8 @@ func (neuron Neuron) calculateDimensionlessQuantities() {
 func (neuron Neuron) calculateSimulationStep() {
 	//potassium and sodium calculation step
 	neuron.calculatePotassiumAndSodiumConductance()
+	neuron.calculateDimensionlessQuantities()
 	neuron.calculateNewVoltage()
-
-}
-
-type Simulation struct {
-	totalSimulationTime float64
-	deltaTime           float64
-	timeArray           []float64
-	weightArray         [][]float64
 }
 
 func (n Neuron) calculateNewVoltage() {
@@ -135,6 +150,44 @@ func (neuron Neuron) sodiumBetaH() {
 func (neuron Neuron) sodiumHInfinity() {
 	return neuron.sodiumAlphaH() /
 		(neuron.sodiumAlphaH() + neuron.sodiumBetaH())
+}
+
+type Simulation struct {
+	totalSimulationTime float64
+	deltaTime           float64
+	timeArray           []float64
+	weightMap           map[*Neuron]map[*Neuron]float64
+	neuronArray         []*Neuron
+}
+
+func (simulation Simulation) addNeuronToSimulation(neuron Neuron) {
+	simulation.neuronArray = append(simulation.neuronArray, &neuron)
+}
+
+func (simulation Simulation) initializeWeightMap() {
+	for neuron1 := range simulation.weightMap {
+		for neuron2 := range simulation.weightMap[neuron1] {
+			simulation.weightMap[neuron1][neuron2] = 0.0
+		}
+	}
+}
+
+func (simulation Simulation) setSynapseWeightPair(neuron1, neuron2 Neuron, weight float64) {
+	simulation.weightMap[neuron1][neuron2] = weight
+	simulation.weightMap[neuron2][neuron1] = weight
+}
+
+func (simulation Simulation) initializeSimulation(totalSimulationTime float64, deltaTime float64) {
+	simulation.totalSimulationTime = totalSimulationTime
+	simulation.deltaTime = deltaTime
+	simulation.initializeTimeArray()
+
+}
+
+func (simulation Simulation) initializeTimeArray() {
+	for timestep := float64(0); timestep < simulation.totalSimulationTime+simulation.deltaTime; timestep += simulation.deltaTime {
+		simulation.timeArray = append(simulation.timeArray, timestep)
+	}
 }
 
 //calculate the potassium rate constant
