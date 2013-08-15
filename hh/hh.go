@@ -46,29 +46,24 @@ type Neuron struct {
 	simulation      *Simulation
 }
 
-//REQUIRES: neuron to be a properly initialized Neuron
-//EFFECTS: Prints the neuron voltages of a single neuron to the screen in such a fashion that
-//if stdout is redirected into a file, it is in CSV format
-func (neuron *Neuron) printToCSV() {
-	for i := range neuron.V_m {
-		fmt.Print(neuron.V_m[i], ",")
-	}
-}
-
 //MODIFIES: neuron's currentTimeStep
 //EFFECTS: Instantiates a single neuron
 func (neuron *Neuron) initializeNeuron(simulation *Simulation) {
-	neuron.intializeVoltageArray(simulation)
 	neuron.setSimulation(simulation)
-	neuron.initializeDimensionlessQuantities()
+	neuron.intializeVoltageArray()
+	neuron.initializeStimulationArray()
 	neuron.currentTimeStep = 1
+	neuron.initializeDimensionlessQuantities()
 
+}
+
+func (neuron *Neuron) initializeStimulationArray() {
+	neuron.stimulation = make([]float64, len(neuron.simulation.timeArray))
 }
 
 //MODIFIES: neuron's stimulation array
 //EFFECTS: Fills the stimulation array with a single 10mV stimulation period from 5ms to 30ms
 func (neuron *Neuron) setSampleStimulationValues() {
-	neuron.stimulation = make([]float64, len(neuron.simulation.timeArray))
 	for time, currentTime := range neuron.simulation.timeArray {
 		if currentTime >= 5 && currentTime <= 30 {
 			neuron.stimulation[time] = float64(10)
@@ -84,9 +79,8 @@ func (neuron *Neuron) setSimulation(simulation *Simulation) {
 
 //MODIFIES: neuron's V_m array
 //EFFECTS: Initializes neuron's voltage array, and sets the first element equal to the neuron's rest voltage
-func (neuron *Neuron) intializeVoltageArray(simulation *Simulation) {
-
-	neuron.V_m = make([]float64, len(simulation.timeArray))
+func (neuron *Neuron) intializeVoltageArray() {
+	neuron.V_m = make([]float64, len(neuron.simulation.timeArray))
 	neuron.V_m[0] = neuron.parameters.restVoltage
 }
 
@@ -103,12 +97,12 @@ func (neuron *Neuron) initializeDimensionlessQuantities() {
 //MODIFIES: neuron's m, n, and h
 //EFFECTS: Calculates the dimensionless quantities for the current neuron timestep
 func (neuron *Neuron) calculateDimensionlessQuantities() {
-	neuron.m += (sodiumAlphaM(neuron.V_m[int(neuron.currentTimeStep)-1])*(1-neuron.m) -
-		sodiumBetaM(neuron.V_m[int(neuron.currentTimeStep)-1])*neuron.m) * neuron.simulation.deltaTime
-	neuron.h += (sodiumAlphaH(neuron.V_m[int(neuron.currentTimeStep)-1])*(1-neuron.h) -
-		sodiumBetaH(neuron.V_m[int(neuron.currentTimeStep)-1])*neuron.h) * neuron.simulation.deltaTime
-	neuron.n += (potassiumAlphaN(neuron.V_m[int(neuron.currentTimeStep)-1])*(1-neuron.n) -
-		potassiumBetaN(neuron.V_m[int(neuron.currentTimeStep)-1])*neuron.n) * neuron.simulation.deltaTime
+	neuron.m += (neuron.sodiumAlphaM()*(1-neuron.m) - //FUNCTIONS ARE CALLING CURRENT VALUES AND NOT PREVIOUS ONES
+		neuron.sodiumBetaM()*neuron.m) * neuron.simulation.deltaTime
+	neuron.h += (neuron.sodiumAlphaH()*(1-neuron.h) -
+		neuron.sodiumBetaH()*neuron.h) * neuron.simulation.deltaTime
+	neuron.n += (neuron.potassiumAlphaN()*(1-neuron.n) -
+		neuron.potassiumBetaN()*neuron.n) * neuron.simulation.deltaTime
 
 }
 
@@ -127,9 +121,9 @@ func (neuron *Neuron) calculateSimulationStep() {
 func (n *Neuron) calculateNewVoltage() {
 	n.V_m[int(n.currentTimeStep)] = n.V_m[int(n.currentTimeStep)-1]
 	n.V_m[int(n.currentTimeStep)] += (n.stimulation[int(n.currentTimeStep)-1] - n.sodiumConductance*
-		(n.V_m[int(n.currentTimeStep)-1]-n.parameters.sodiumReversePotential) - n.potassiumConductance*
-		(n.V_m[int(n.currentTimeStep)-1]-n.parameters.potassiumReversePotential) - n.parameters.leakConductance*
-		(n.V_m[int(n.currentTimeStep)-1]-n.parameters.leakReversePotential)) / n.parameters.lipidBilayerCapacitance * n.simulation.deltaTime
+		(n.previousVoltage()-n.parameters.sodiumReversePotential) - n.potassiumConductance*
+		(n.previousVoltage()-n.parameters.potassiumReversePotential) - n.parameters.leakConductance*
+		(n.previousVoltage()-n.parameters.leakReversePotential)) / n.parameters.lipidBilayerCapacitance * n.simulation.deltaTime
 }
 
 //MODIFIES: neuron's sodiumConductance and potassiumConductance
@@ -144,17 +138,21 @@ func (neuron *Neuron) currentVoltage() float64 {
 	return neuron.V_m[int(neuron.currentTimeStep)]
 }
 
+func (neuron *Neuron) previousVoltage() float64 {
+	return neuron.V_m[int(neuron.currentTimeStep)-1]
+}
+
 //EFFECTS: Calculates and returns the neuron's current first potassium rate constant value
 func (neuron *Neuron) potassiumAlphaN() float64 {
-	if neuron.currentVoltage() != 10 {
-		return 0.01 * (-neuron.currentVoltage() + 10) / (math.Exp((-neuron.currentVoltage()+10)/10) - 1)
+	if neuron.previousVoltage() != 10 {
+		return 0.01 * (-neuron.previousVoltage() + 10) / (math.Exp((-neuron.previousVoltage()+10)/10) - 1)
 	}
 	return 0.1
 }
 
 //EFFECTS: Calculates and returns the neuron's current second potassium rate constant value
 func (neuron *Neuron) potassiumBetaN() float64 {
-	return 0.125 * math.Exp(-neuron.currentVoltage()/80)
+	return 0.125 * math.Exp(-neuron.previousVoltage()/80)
 }
 
 //EFFECTS: Calculates and returns the neuron's current steady state potassium activation value
@@ -165,15 +163,15 @@ func (neuron *Neuron) potassiumNInfinity() float64 {
 
 //EFFECTS: Calculates and returns the neuron's current first sodium rate constant value
 func (neuron *Neuron) sodiumAlphaM() float64 {
-	if neuron.currentVoltage() != 25 {
-		return 0.1 * (-neuron.currentVoltage() + 25) / (math.Exp((-neuron.currentVoltage()+25)/10) - 1)
+	if neuron.previousVoltage() != 25 { //change to previous voltage
+		return 0.1 * (-neuron.previousVoltage() + 25) / (math.Exp((-neuron.previousVoltage()+25)/10) - 1)
 	}
 	return 1
 }
 
 //EFFECTS: Calculates and returns the neuron's current second sodium rate constant value
 func (neuron *Neuron) sodiumBetaM() float64 {
-	return 4 * math.Exp(-neuron.currentVoltage()/18)
+	return 4 * math.Exp(-neuron.previousVoltage()/18)
 }
 
 //EFFECTS: Calculates and returns the neuron's current sodium steady state activation value
@@ -184,12 +182,12 @@ func (neuron *Neuron) sodiumMInfinity() float64 {
 
 //EFFECTS: Calculates and returns the neuron's current first sodium inactivation rate constant value
 func (neuron *Neuron) sodiumAlphaH() float64 {
-	return 0.07 * math.Exp(-neuron.currentVoltage()/20)
+	return 0.07 * math.Exp(-neuron.previousVoltage()/20)
 }
 
 //EFFECTS: Calculates and returns the neuron's current second sodium inactivation rate constant value
 func (neuron *Neuron) sodiumBetaH() float64 {
-	return 1 / (math.Exp((-neuron.currentVoltage()+30)/10) + 1)
+	return 1 / (math.Exp((-neuron.previousVoltage()+30)/10) + 1)
 }
 
 //EFFECTS: Calculates and returns the neuron's current sodium steady state inactivation value
@@ -211,9 +209,8 @@ type Simulation struct {
 //EFFECTS: Initializes all neurons in the neuron array with params
 func (simulation *Simulation) initializeNeuronArray(params NeuronParameters) {
 	for _, neuron := range simulation.neuronArray {
-		neuron.initializeNeuron(simulation)
 		neuron.parameters = params
-		neuron.setSampleStimulationValues()
+		neuron.initializeNeuron(simulation)
 	}
 }
 
@@ -222,6 +219,14 @@ func (simulation *Simulation) initializeNeuronArray(params NeuronParameters) {
 func (simulation *Simulation) addNumberofNeuronsToSimulation(neuronCount int) {
 	for i := 0; i < neuronCount; i++ {
 		simulation.neuronArray = append(simulation.neuronArray, new(Neuron))
+	}
+}
+
+func (simulation *Simulation) allocateWeightMap() {
+	simulation.weightMap = make(map[*Neuron]map[*Neuron]float64, len(simulation.neuronArray))
+	for _, neuron := range simulation.neuronArray {
+		simulation.weightMap[neuron] = make(map[*Neuron]float64, len(simulation.neuronArray))
+
 	}
 }
 
@@ -238,8 +243,21 @@ func (simulation *Simulation) initializeWeightMap() {
 
 //MODIFIES: simulation's weightMap
 //EFFECTS: Sets the connection weight from neuron1 to neuron2 as weight
-func (simulation *Simulation) setSynapseWeightPair(neuron1, neuron2 Neuron, weight float64) {
-	simulation.weightMap[&neuron1][&neuron2] = weight
+func (simulation *Simulation) setSynapseWeightPair(neuron1, neuron2 *Neuron, weight float64) {
+	simulation.weightMap[neuron1][neuron2] = weight
+}
+
+//MODIFIES: simulation's neuronArray's neurons
+//EFFECTS: Updates all of the stimulations based on the current voltages
+func (simulation *Simulation) updateNeuronStimulationValues() {
+	for _, neuron1 := range simulation.neuronArray {
+		for _, neuron2 := range simulation.neuronArray {
+			if neuron1 == neuron2 {
+				continue
+			}
+			neuron2.stimulation[int(neuron2.currentTimeStep)] += neuron1.V_m[int(neuron1.currentTimeStep)] * simulation.weightMap[neuron1][neuron2]
+		}
+	}
 }
 
 //MODIFIES: Simulation's totalSimulationTime, deltaTime
@@ -264,11 +282,31 @@ func (simulation *Simulation) initializeTimeArray() {
 func (simulation *Simulation) runSimulation() {
 	//simulation code goes here
 	for timeStep := 1; timeStep < len(simulation.timeArray); timeStep++ {
+		//	simulation.updateNeuronStimulationValues()
 		for _, neuron := range simulation.neuronArray {
 			neuron.calculateSimulationStep()
 		}
 	}
 }
+
+func (simulation *Simulation) printToCSV() {
+	for row, time := range simulation.timeArray {
+		fmt.Print(time, ",")
+		for index, neuron := range simulation.neuronArray {
+			if index != len(simulation.neuronArray)-1 {
+				fmt.Print(neuron.V_m[row], ",")
+			} else {
+				fmt.Print(neuron.V_m[row])
+			}
+		}
+		fmt.Print("\n")
+	}
+}
+
+/*type HDF5File struct {
+	dims      []int
+	dataspace *Dataspace
+}*/
 
 func main() {
 
@@ -278,12 +316,15 @@ func main() {
 
 	var simulation Simulation
 	simulation.initializeSimulation(totalSimulationTime, deltaTime)
-	simulation.initializeWeightMap()
 	var params NeuronParameters
 	params.initializeParametersWithDefaults() //defaults are initialized
 	simulation.addNumberofNeuronsToSimulation(1)
 	simulation.initializeNeuronArray(params)
+	simulation.neuronArray[0].setSampleStimulationValues()
+	simulation.allocateWeightMap()
+	simulation.initializeWeightMap()
+	//simulation.setSynapseWeightPair(simulation.neuronArray[0], simulation.neuronArray[1], 0.8)
 	simulation.runSimulation()
-	simulation.neuronArray[0].printToCSV()
+	simulation.printToCSV()
 
 }
