@@ -50,7 +50,7 @@ func (neuron *Neuron) printToCSV() {
 	}
 }
 
-func (neuron *Neuron) initializeNeuron(simulation Simulation) {
+func (neuron *Neuron) initializeNeuron(simulation *Simulation) {
 	neuron.intializeVoltageArray(simulation)
 	neuron.setSimulation(simulation)
 	neuron.initializeDimensionlessQuantities()
@@ -67,11 +67,11 @@ func (neuron *Neuron) setSampleStimulationValues() {
 	}
 }
 
-func (neuron *Neuron) setSimulation(simulation Simulation) {
-	neuron.simulation = &simulation
+func (neuron *Neuron) setSimulation(simulation *Simulation) {
+	neuron.simulation = simulation
 }
 
-func (neuron *Neuron) intializeVoltageArray(simulation Simulation) {
+func (neuron *Neuron) intializeVoltageArray(simulation *Simulation) {
 
 	neuron.V_m = make([]float64, len(simulation.timeArray))
 	neuron.V_m[0] = neuron.parameters.restVoltage
@@ -169,8 +169,23 @@ type Simulation struct {
 	neuronArray         []*Neuron
 }
 
+//DEPRECATED
 func (simulation *Simulation) addNeuronToSimulation(neuron Neuron) {
 	simulation.neuronArray = append(simulation.neuronArray, &neuron)
+}
+
+func (simulation *Simulation) initializeNeuronArray(params NeuronParameters) {
+	for _, neuron := range simulation.neuronArray {
+		neuron.initializeNeuron(simulation)
+		neuron.parameters = params
+		neuron.setSampleStimulationValues()
+	}
+}
+
+func (simulation *Simulation) addNumberofNeuronsToSimulation(neuronCount int) {
+	for i := 0; i < neuronCount; i++ {
+		simulation.neuronArray = append(simulation.neuronArray, new(Neuron))
+	}
 }
 
 func (simulation *Simulation) initializeWeightMap() {
@@ -274,18 +289,10 @@ func main() {
 	simulation.initializeWeightMap()
 	var params NeuronParameters
 	params.initializeParametersWithDefaults() //defaults are initialized
-
-	var testNeuron Neuron
-
-	testNeuron.initializeNeuron(simulation) //neuron is initialized
-	testNeuron.parameters = params          //parameters are in place
-
-	testNeuron.setSampleStimulationValues() //simulation values are set
-
-	//add the neurons here
-	simulation.addNeuronToSimulation(testNeuron)
+	simulation.addNumberofNeuronsToSimulation(1)
+	simulation.initializeNeuronArray(params)
 	simulation.runSimulation()
-	testNeuron.printToCSV()
+	simulation.neuronArray[0].printToCSV()
 
 	/*
 
