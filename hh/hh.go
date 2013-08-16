@@ -311,19 +311,23 @@ func (simulation *Simulation) printToCSV() {
 func main() {
 
 	//Simulation Parameters
-	totalSimulationTime := float64(55) //Total simulation time in milliseconds
-	deltaTime := float64(0.025)        //Simulation timestep in milliseconds
+	totalSimulationTime := float64(220) //Total simulation time in milliseconds
+	deltaTime := float64(0.025)         //Simulation timestep in milliseconds
 
 	var simulation Simulation
 	simulation.initializeSimulation(totalSimulationTime, deltaTime)
 	var params NeuronParameters
 	params.initializeParametersWithDefaults() //defaults are initialized
-	simulation.addNumberofNeuronsToSimulation(2)
+	simulation.addNumberofNeuronsToSimulation(3)
 	simulation.initializeNeuronArray(params)
 	simulation.neuronArray[0].setSampleStimulationValues()
 	simulation.allocateWeightMap()
 	simulation.initializeWeightMap()
 	simulation.setSynapseWeightPair(simulation.neuronArray[0], simulation.neuronArray[1], 0.8)
+	simulation.setSynapseWeightPair(simulation.neuronArray[1], simulation.neuronArray[2], 0.9)
+	simulation.setSynapseWeightPair(simulation.neuronArray[2], simulation.neuronArray[1], 0.1)
+	simulation.setSynapseWeightPair(simulation.neuronArray[2], simulation.neuronArray[0], 0.1)
+
 	simulation.runSimulation()
 	simulation.printToCSV()
 
