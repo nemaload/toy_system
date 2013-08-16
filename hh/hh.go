@@ -251,11 +251,11 @@ func (simulation *Simulation) setSynapseWeightPair(neuron1, neuron2 *Neuron, wei
 //EFFECTS: Updates all of the stimulations based on the current voltages
 func (simulation *Simulation) updateNeuronStimulationValues() {
 	for _, neuron1 := range simulation.neuronArray {
-		for _, neuron2 := range simulation.neuronArray {
+		for neuron2 := range simulation.weightMap[neuron1] {
 			if neuron1 == neuron2 {
 				continue
 			}
-			neuron2.stimulation[int(neuron2.currentTimeStep)] += neuron1.V_m[int(neuron1.currentTimeStep)] * simulation.weightMap[neuron1][neuron2]
+			neuron2.stimulation[int(neuron2.currentTimeStep)] += neuron1.V_m[int(neuron1.currentTimeStep)-1] * simulation.weightMap[neuron1][neuron2]
 		}
 	}
 }
@@ -282,7 +282,7 @@ func (simulation *Simulation) initializeTimeArray() {
 func (simulation *Simulation) runSimulation() {
 	//simulation code goes here
 	for timeStep := 1; timeStep < len(simulation.timeArray); timeStep++ {
-		//	simulation.updateNeuronStimulationValues()
+		simulation.updateNeuronStimulationValues()
 		for _, neuron := range simulation.neuronArray {
 			neuron.calculateSimulationStep()
 		}
@@ -318,12 +318,12 @@ func main() {
 	simulation.initializeSimulation(totalSimulationTime, deltaTime)
 	var params NeuronParameters
 	params.initializeParametersWithDefaults() //defaults are initialized
-	simulation.addNumberofNeuronsToSimulation(1)
+	simulation.addNumberofNeuronsToSimulation(2)
 	simulation.initializeNeuronArray(params)
 	simulation.neuronArray[0].setSampleStimulationValues()
 	simulation.allocateWeightMap()
 	simulation.initializeWeightMap()
-	//simulation.setSynapseWeightPair(simulation.neuronArray[0], simulation.neuronArray[1], 0.8)
+	simulation.setSynapseWeightPair(simulation.neuronArray[0], simulation.neuronArray[1], 0.8)
 	simulation.runSimulation()
 	simulation.printToCSV()
 
